@@ -196,20 +196,19 @@ class GraphSearchAgent:
         Update the narrative memory with the current observation.
         """
         try:
-            if self.pdate_reflection:
-                print(self.search_query)
-                try:
-                    reflection_path = os.path.join(working_dir, "kb", self.experiment_type, "lifelong_learning_knowledge_base.json")
-                    lifelong_learning_reflections = json.load(open(reflection_path))
-                except:
-                    lifelong_learning_reflections = {}
-                if self.planner.search_query not in lifelong_learning_reflections.keys():
-                    lifelong_learning_reflection = self.planner.generate_lifelong_learning_reflection(traj)
-                    lifelong_learning_reflections[self.search_query] = lifelong_learning_reflection
-                else:
-                    pass
-                with open(reflection_path, "w") as fout:
-                    json.dump(lifelong_learning_reflections, fout, indent=2)
+            print(self.search_query)
+            try:
+                reflection_path = os.path.join(working_dir, "kb", self.experiment_type, "lifelong_learning_knowledge_base.json")
+                lifelong_learning_reflections = json.load(open(reflection_path))
+            except:
+                lifelong_learning_reflections = {}
+            if self.planner.search_query not in lifelong_learning_reflections.keys():
+                lifelong_learning_reflection = self.planner.generate_lifelong_learning_reflection(traj)
+                lifelong_learning_reflections[self.search_query] = lifelong_learning_reflection
+            else:
+                pass
+            with open(reflection_path, "w") as fout:
+                json.dump(lifelong_learning_reflections, fout, indent=2)
         except Exception as e:
             print(e)
 

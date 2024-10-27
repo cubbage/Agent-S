@@ -59,6 +59,7 @@ class Planner:
         self.use_plan_cache = use_plan_cache
         self.multi_round = multi_round
         self.experiment_type = experiment_type
+        self.search_query = ""
 
         self.plan_cache_path = os.path.join(working_dir, "kb", self.experiment_type, "graph_agent_plans.json")
         self.dag_cache_path = os.path.join(working_dir, "kb", self.experiment_type, "graph_agent_dags.json")
