@@ -50,6 +50,93 @@ except subprocess.TimeoutExpired:
     output = f"Command {{escaped_cmd}} timed out after {timeout} seconds"
 """
 
+set_cell_values_cmd = """import uno
+import subprocess
+
+def identify_document_type(component):
+    if component.supportsService("com.sun.star.sheet.SpreadsheetDocument"):
+        return "Calc"
+
+    if component.supportsService("com.sun.star.text.TextDocument"):
+        return "Writer"
+
+    if component.supportsService("com.sun.star.sheet.PresentationDocument"):
+        return "Impress"
+
+    return None
+
+def cell_ref_to_indices(cell_ref):
+    column_letters = ''.join(filter(str.isalpha, cell_ref))
+    row_number = ''.join(filter(str.isdigit, cell_ref))
+
+    col = sum((ord(char.upper()) - ord('A') + 1) * (26**idx) for idx, char in enumerate(reversed(column_letters))) - 1
+    row = int(row_number) - 1
+    return col, row
+
+def set_cell_values(new_cell_values: dict[str, str], app_name: str = "Untitled 1", sheet_name: str = "Sheet1"):
+    new_cell_values_idx = {{}}
+    for k, v in new_cell_values.items():
+        try:
+            col, row = cell_ref_to_indices(k)
+        except:
+            col = row = None
+
+        if col is not None and row is not None:
+            new_cell_values_idx[(col, row)] = v
+
+    # Clean up previous TCP connections.
+    subprocess.run(
+        'echo \"password\" | sudo -S ss --kill --tcp state TIME-WAIT sport = :2002',
+        shell=True,
+        check=True,
+        text=True,
+        capture_output=True
+    )
+
+    # Dynamically allow soffice to listen on port 2002.
+    subprocess.run(
+        [
+            "soffice",
+            "--accept=socket,host=localhost,port=2002;urp;StarOffice.Service"
+        ]
+    )
+
+    local_context = uno.getComponentContext()
+    resolver = local_context.ServiceManager.createInstanceWithContext(
+        "com.sun.star.bridge.UnoUrlResolver", local_context
+    )
+    context = resolver.resolve(
+        f"uno:socket,host=localhost,port=2002;urp;StarOffice.ComponentContext"
+    )
+    desktop = context.ServiceManager.createInstanceWithContext(
+        "com.sun.star.frame.Desktop", context
+    )
+
+    # Collect all LibreOffice-related opened windows.
+    documents = []
+    for i, component in enumerate(desktop.Components):
+        title = component.Title
+        doc_type = identify_document_type(component)
+        documents.append((i, component, title, doc_type))
+
+    # Find the LibreOffice Calc app and the sheet of interest.
+    spreadsheet = [doc[1] for doc in documents if doc[3] == "Calc" and doc[2] == app_name]
+    if spreadsheet:
+        try:
+            sheet = spreadsheet[0].Sheets.getByName(sheet_name)
+        except:
+            raise ValueError(f"Could not find sheet {{sheet_name}} in {{app_name}}.")
+
+        for (col, row), value in new_cell_values_idx.items():
+            cell = sheet.getCellByPosition(col, row)
+
+            # Set the cell value.
+            cell.String = str(value)
+    else:
+        raise ValueError(f"Could not find LibreOffice Calc app corresponding to {{app_name}}.")
+
+set_cell_values(new_cell_values={cell_values}, app_name={app_name}, sheet_name={sheet_name})        
+"""
 
 # Agent action decorator
 def agent_action(func):
@@ -403,6 +490,23 @@ subprocess.run(['wmctrl', '-ir', window_id, '-b', 'add,maximized_vert,maximized_
         command_list.append('print("<OUTPUT>\\n", repr(outputs), "\\n</OUTPUT>\\n")')
 
         return "\n".join(command_list)
+
+    @agent_action
+    def set_cell_values(
+        self, 
+        cell_values: Dict[str, str], 
+        app_name: str = "Untitled 1", 
+        sheet_name: str = "Sheet1"
+    ):
+        """Sets cell values in the spreadsheet specified by the app_name and sheet_name.
+        Args:
+            cell_values: Dict[str, str], A dictionary of cell values to set in the spreadsheet. The keys are the cell coordinates in the format "A1", "B2", etc.
+            app_name: str, The name of the spreadsheet application. Defaults to "Untitled 1".
+            sheet_name: str, The name of the sheet in the spreadsheet. Defaults to "Sheet1".
+        """
+        return set_cell_values_cmd.format(
+            cell_values=cell_values, app_name=app_name, sheet_name=sheet_name
+        )
 
     @agent_action
     def click(
