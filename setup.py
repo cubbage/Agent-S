@@ -1,15 +1,18 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 setup(
-    name='agent_s',
+    name='gui-agents',
     version='0.1.0',
     description='A library for creating general purpose GUI agents using multimodal LLMs.',
-    long_description=open('README.md').read(),
+    long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
-    author='Saaket Agashe',
-    author_email='saagashe@ucsc.edu',
+    author='Simular AI',
+    author_email='eric@simular.ai',
     packages=find_packages(),
     include_package_data=True,
+    package_data={
+        'gui_agents': ['kb/*/*.json']
+    },
     install_requires=[
         'numpy',
         'backoff',
@@ -33,21 +36,22 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'agent_s=agent_s.cli_app:main',
+            'agent_s=gui_agents.cli_app:main',
         ],
     },
      classifiers=[
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.9',
-        'License :: OSI Approved :: Apache License',
-        'Operating System :: MacOS',
-        'Operating System :: Ubuntu',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS :: MacOS X',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
     keywords='ai, llm, gui, agent, multimodal',
     project_urls={
-        'Source': 'https://github.com/saaketagashe/Agent-S',
-        'Bug Reports': 'https://github.com/saaketagashe/Agent-S/issues',
+        'Source': 'https://github.com/simular-ai/Agent-S',
+        'Bug Reports': 'https://github.com/simular-ai/Agent-S/issues',
     },
     python_requires='>=3.9',
 )
