@@ -143,7 +143,7 @@ def set_cell_values(new_cell_values: dict[str, str], app_name: str = "Untitled 1
             elif value is None:
                 cell.clearContents(0)
             else:
-                raise ValueError(f"Unsupported cell value type: {type(value)}")
+                raise ValueError(f"Unsupported cell value type: {{type(value)}}")
 
     else:
         raise ValueError(f"Could not find LibreOffice Calc app corresponding to {{app_name}}.")
@@ -514,7 +514,8 @@ subprocess.run(['wmctrl', '-ir', window_id, '-b', 'add,maximized_vert,maximized_
     ):
         """Sets individual cell values in a spreadsheet. For example, setting A2 to "hello" would be done by passing {"A2": "hello"} as cell_values.
         Args:
-            cell_values: Dict[str, Any], A dictionary of cell values to set in the spreadsheet. The keys are the cell coordinates in the format "A1", "B2", etc. Supported value types include: float, int, string, formulas.
+            cell_values: Dict[str, Any], A dictionary of cell values to set in the spreadsheet. The keys are the cell coordinates in the format "A1", "B2", etc. 
+                Supported value types include: float, int, string, bool, formulas.
             app_name: str, The name of the spreadsheet application. 
             sheet_name: str, The name of the sheet in the spreadsheet.
         """
