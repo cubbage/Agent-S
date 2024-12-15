@@ -1,7 +1,7 @@
 import os
 import torch
 import xml.etree.ElementTree as ET
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import torchvision
 import base64
 import requests
@@ -131,14 +131,20 @@ def set_cell_values(new_cell_values: dict[str, str], app_name: str = "Untitled 1
             cell = sheet.getCellByPosition(col, row)
 
             # Set the cell value.
-            if isinstance(value, int):
+            if isinstance(value, (int, float)):
                 cell.Value = value
-            elif isinstance(value, float):
-                cell.Value = value
-            elif isinstance(value, str) and value.startswith("="):
-                cell.Formula = str(value)
+            elif isinstance(value, str):
+                if value.startswith("="):
+                    cell.Formula = value
+                else:
+                    cell.String = value
+            elif isinstance(value, bool):
+                cell.Value = 1 if value else 0
+            elif value is None:
+                cell.clearContents(0)
             else:
-                cell.String = str(value)
+                raise ValueError(f"Unsupported cell value type: {type(value)}")
+
     else:
         raise ValueError(f"Could not find LibreOffice Calc app corresponding to {{app_name}}.")
 
@@ -502,13 +508,13 @@ subprocess.run(['wmctrl', '-ir', window_id, '-b', 'add,maximized_vert,maximized_
     @agent_action
     def set_cell_values(
         self, 
-        cell_values: Dict[str, str], 
+        cell_values: Dict[str, Any], 
         app_name: str, 
         sheet_name: str
     ):
         """Sets individual cell values in a spreadsheet. For example, setting A2 to "hello" would be done by passing {"A2": "hello"} as cell_values.
         Args:
-            cell_values: Dict[str, str], A dictionary of cell values to set in the spreadsheet. The keys are the cell coordinates in the format "A1", "B2", etc.
+            cell_values: Dict[str, Any], A dictionary of cell values to set in the spreadsheet. The keys are the cell coordinates in the format "A1", "B2", etc. Supported value types include: float, int, string, formulas.
             app_name: str, The name of the spreadsheet application. 
             sheet_name: str, The name of the sheet in the spreadsheet.
         """
