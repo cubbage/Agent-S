@@ -499,7 +499,7 @@ subprocess.run(['wmctrl', '-ir', window_id, '-b', 'add,maximized_vert,maximized_
         app_name: str = "Untitled 1", 
         sheet_name: str = "Sheet1"
     ):
-        """Sets cell values in the spreadsheet specified by the app_name and sheet_name.
+        """Sets individual cell values in a spreadsheet. For example, setting A2 to "hello" would be done by passing {"A2": "hello"} as cell_values.
         Args:
             cell_values: Dict[str, str], A dictionary of cell values to set in the spreadsheet. The keys are the cell coordinates in the format "A1", "B2", etc.
             app_name: str, The name of the spreadsheet application. Defaults to "Untitled 1".
