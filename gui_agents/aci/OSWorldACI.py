@@ -131,7 +131,14 @@ def set_cell_values(new_cell_values: dict[str, str], app_name: str = "Untitled 1
             cell = sheet.getCellByPosition(col, row)
 
             # Set the cell value.
-            cell.String = str(value)
+            if isinstance(value, int):
+                cell.Value = value
+            elif isinstance(value, float):
+                cell.Value = value
+            elif isinstance(value, str) and value.startswith("="):
+                cell.Formula = str(value)
+            else:
+                cell.String = str(value)
     else:
         raise ValueError(f"Could not find LibreOffice Calc app corresponding to {{app_name}}.")
 
