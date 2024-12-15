@@ -5,11 +5,11 @@ import os
 import json
 from typing import Any, List, Dict, Tuple, Optional
 from dataclasses import dataclass
-from agent_s.aci.OSWorldACI import OSWorldACI
-from agent_s.core.Manager import Manager
-from agent_s.core.Worker import Worker
-from agent_s.aci.ACI import ACI
-from agent_s.utils.common_utils import Node
+from gui_agents.aci.OSWorldACI import OSWorldACI
+from gui_agents.core.Manager import Manager
+from gui_agents.core.Worker import Worker
+from gui_agents.aci.ACI import ACI
+from gui_agents.utils.common_utils import Node
 
 logger = logging.getLogger("desktopenv.agent")
 working_dir = os.path.dirname(os.path.abspath(__file__))
