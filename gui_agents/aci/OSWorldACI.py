@@ -120,10 +120,16 @@ def set_cell_values(new_cell_values: dict[str, str], app_name: str = "Untitled 1
         documents.append((i, component, title, doc_type))
 
     # Find the LibreOffice Calc app and the sheet of interest.
-    spreadsheet = [doc[1] for doc in documents if doc[3] == "Calc" and doc[2] == app_name]
+    spreadsheet = [doc[1] for doc in documents if doc[3] == "Calc"]
+    selected_spreadsheet = [doc[1] for doc in spreadsheet if doc[2] == app_name]
     if spreadsheet:
         try:
-            sheet = spreadsheet[0].Sheets.getByName(sheet_name)
+            if selected_spreadsheet:
+                spreadsheet = selected_spreadsheet[0]
+            else:
+                spreadsheet = spreadsheet[0]
+
+            sheet = spreadsheet.Sheets.getByName(sheet_name)
         except:
             raise ValueError(f"Could not find sheet {{sheet_name}} in {{app_name}}.")
 
