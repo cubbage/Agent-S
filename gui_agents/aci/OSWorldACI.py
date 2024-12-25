@@ -659,7 +659,7 @@ subprocess.run(['wmctrl', '-ir', window_id, '-b', 'add,maximized_vert,maximized_
             app_name: str, The name of the text document application.
             value: str, The text content to insert.
         """
-        return insert_text_uno_cmd.format(
+        return uno_helper_fn + insert_text_uno_cmd.format(
             app_name=app_name, value=value
         )
 
@@ -671,7 +671,7 @@ subprocess.run(['wmctrl', '-ir', window_id, '-b', 'add,maximized_vert,maximized_
             search_text: str, The text to search for in the document.
             replaced_text: str, The text to replace the found occurrences with.
         """
-        return replace_text_uno_cmd.format(
+        return uno_helper_fn + replace_text_uno_cmd.format(
             app_name=app_name, search_text=search_text, replaced_text=replaced_text
         )
 
@@ -682,7 +682,7 @@ subprocess.run(['wmctrl', '-ir', window_id, '-b', 'add,maximized_vert,maximized_
             app_name: str, The name of the text document application.
             num_chars: int, The number of characters to delete from the current cursor position.
         """
-        return delete_text_uno_cmd.format(
+        return uno_helper_fn + delete_text_uno_cmd.format(
             app_name=app_name, num_chars=num_chars
         )
 
