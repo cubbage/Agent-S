@@ -654,7 +654,7 @@ subprocess.run(['wmctrl', '-ir', window_id, '-b', 'add,maximized_vert,maximized_
 
     @agent_action
     def insert_text(self, app_name: str, value: str):
-        """Inserts text at the current cursor position in the text document.
+        """Inserts text at the current cursor position in the LibreOffice Writer text document.
         Args:
             app_name: str, The name of the text document application.
             value: str, The text content to insert.
@@ -665,7 +665,7 @@ subprocess.run(['wmctrl', '-ir', window_id, '-b', 'add,maximized_vert,maximized_
 
     @agent_action
     def replace_text(self, app_name: str, search_text: str, replaced_text: str):
-        """Replaces all occurrences of a specified string with another in the document.
+        """Replaces all occurrences of a specified string with another in the LibreOffice text document.
         Args:
             app_name: str, The name of the text document application.
             search_text: str, The text to search for in the document.
@@ -677,7 +677,7 @@ subprocess.run(['wmctrl', '-ir', window_id, '-b', 'add,maximized_vert,maximized_
 
     @agent_action
     def delete_text(self, app_name: str, num_chars: int):
-        """Deletes a specified number of characters from the current cursor position.
+        """Deletes a specified number of characters from the current cursor position in the LibreOffice Writer text document.
         Args:
             app_name: str, The name of the text document application.
             num_chars: int, The number of characters to delete from the current cursor position.
