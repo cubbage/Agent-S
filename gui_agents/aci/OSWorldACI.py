@@ -157,6 +157,129 @@ def set_cell_values(new_cell_values: dict[str, str], app_name: str = "Untitled 1
 set_cell_values(new_cell_values={cell_values}, app_name="{app_name}", sheet_name="{sheet_name}")        
 """
 
+uno_helper_fn = """
+import uno
+import subprocess
+
+def identify_document_type(component):
+    if component.supportsService("com.sun.star.text.TextDocument"):
+        return "Writer"
+
+    if component.supportsService("com.sun.star.sheet.SpreadsheetDocument"):
+        return "Calc"
+
+    if component.supportsService("com.sun.star.sheet.PresentationDocument"):
+        return "Impress"
+
+    return None
+
+def get_document(selected_doc_type: str, app_name: str):
+    subprocess.run(
+        'echo "password" | sudo -S ss --kill --tcp state TIME-WAIT sport = :2002',
+        shell=True,
+        check=True,
+        text=True,
+        capture_output=True
+    )
+
+    subprocess.run(
+        [
+            "soffice",
+            "--accept=socket,host=localhost,port=2002;urp;StarOffice.Service"
+        ]
+    )
+    local_context = uno.getComponentContext()
+    resolver = local_context.ServiceManager.createInstanceWithContext(
+        "com.sun.star.bridge.UnoUrlResolver", local_context
+    )
+    context = resolver.resolve(
+        f"uno:socket,host=localhost,port=2002;urp;StarOffice.ComponentContext"
+    )
+    desktop = context.ServiceManager.createInstanceWithContext(
+        "com.sun.star.frame.Desktop", context
+    )
+
+    documents = []
+    for i, component in enumerate(desktop.Components):
+        title = component.Title
+        doc_type = identify_document_type(component)
+        documents.append((i, component, title, doc_type))
+
+    text_docs = [doc for doc in documents if doc[3] == selected_doc_type]
+    selected_text_doc = [doc for doc in text_docs if doc[2] == app_name]
+
+    if text_docs:
+        if selected_text_doc:
+            return selected_text_doc[0][1]
+        else:
+            return text_docs[0][1]
+    else:
+        raise ValueError(f"Could not find LibreOffice Writer app corresponding to {{app_name}}.")
+
+"""
+
+insert_text_uno_cmd = """
+def insert_text_at_cursor(text_doc, content):
+    text = text_doc.Text
+
+    # Get the current view cursor
+    current_controller = text_doc.getCurrentController()
+    view_cursor = current_controller.getViewCursor()
+
+    # Insert the content at the current cursor position
+    text.insertString(view_cursor, content, False)
+
+def insert_text_operation(app_name: str, value: str):
+    text_doc = get_document("Writer", app_name)
+    insert_text_at_cursor(text_doc, value)
+    print("Successfully inserted string at the current cursor position.")
+
+insert_text_operation("{app_name}", "{value}")
+"""
+    
+replace_text_uno_cmd = """
+def replace_text_in_document(text_doc, search_text, replace_text):
+    search_descriptor = text_doc.createSearchDescriptor()
+    search_descriptor.SearchString = search_text
+    found = text_doc.findFirst(search_descriptor)
+    while found:
+        found.setString(replace_text)  # Replace the found text
+        found = text_doc.findNext(found, search_descriptor)  # Search for the next occurrence
+
+def replace_text_operation(app_name: str, search_text: str, replaced_text: str):
+    text_doc = get_document("Writer", app_name)
+    replace_text_in_document(text_doc, search_text, replaced_text)
+    print(f"Successfully replaced {{search_text}} with {{replaced_text}}.")
+
+replace_text_operation("{app_name}", "{search_text}", "{replaced_text}")
+"""
+
+delete_text_uno_cmd = """
+def delete_text_at_cursor(text_doc, num_chars=10):
+    text = text_doc.Text
+
+    # Get the current view cursor
+    current_controller = text_doc.getCurrentController()
+    view_cursor = current_controller.getViewCursor()
+
+    # Move the view cursor to select the specified number of characters
+    view_cursor.goRight(num_chars, True)
+
+    # Delete the selected text
+    if view_cursor.isCollapsed():
+        print("No text selected to delete.")
+    else:
+        view_cursor.setString("")  # Delete the selected text
+
+def delete_text_operation(app_name: str, num_chars: int):
+    text_doc = get_document("Writer", app_name)
+    delete_text_at_cursor(text_doc, num_chars=num_chars)
+    print(f"Successfully deleted {{num_chars}} characters at the current cursor position.")
+
+delete_text_operation("{app_name}", {num_chars})
+"""
+
+
 
 # Agent action decorator
 def agent_action(func):
@@ -527,6 +650,40 @@ subprocess.run(['wmctrl', '-ir', window_id, '-b', 'add,maximized_vert,maximized_
         """
         return set_cell_values_cmd.format(
             cell_values=cell_values, app_name=app_name, sheet_name=sheet_name
+        )
+
+    @agent_action
+    def insert_text(self, app_name: str, value: str):
+        """Inserts text at the current cursor position in the text document.
+        Args:
+            app_name: str, The name of the text document application.
+            value: str, The text content to insert.
+        """
+        return insert_text_uno_cmd.format(
+            app_name=app_name, value=value
+        )
+
+    @agent_action
+    def replace_text(self, app_name: str, search_text: str, replaced_text: str):
+        """Replaces all occurrences of a specified string with another in the document.
+        Args:
+            app_name: str, The name of the text document application.
+            search_text: str, The text to search for in the document.
+            replaced_text: str, The text to replace the found occurrences with.
+        """
+        return replace_text_uno_cmd.format(
+            app_name=app_name, search_text=search_text, replaced_text=replaced_text
+        )
+
+    @agent_action
+    def delete_text(self, app_name: str, num_chars: int):
+        """Deletes a specified number of characters from the current cursor position.
+        Args:
+            app_name: str, The name of the text document application.
+            num_chars: int, The number of characters to delete from the current cursor position.
+        """
+        return delete_text_uno_cmd.format(
+            app_name=app_name, num_chars=num_chars
         )
 
     @agent_action
